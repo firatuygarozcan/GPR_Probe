@@ -24,6 +24,8 @@ def prepare_topology_data(net, all_buses, measured_buses):
     N = len(all_indices)
 
     print("--> GPR: Creating the physical distance matrix (Shortest Path)...")
+    # What is the shortest path between bus x and bus j
+    # Output: Distance matrix. Input for Kernel function
     dist_matrix = np.zeros((N, N))
     for i, source in enumerate(all_indices):
         for j, target in enumerate(all_indices):
@@ -34,6 +36,7 @@ def prepare_topology_data(net, all_buses, measured_buses):
                 dist_matrix[i, j] = 100
 
     print("--> GPR: Preparing input features (X) and scaling...")
+    # AI sees the value of 30% of values
     train_idx_positions = [all_indices.index(idx) for idx in measured_buses.index]
 
     X_train_raw = dist_matrix[train_idx_positions]
@@ -81,9 +84,9 @@ def evaluate_and_visualize(all_buses_sorted, measured_buses, y_true, y_pred, sig
     Plots the predictions vs ground truth and prints the tabular results
     for the unmeasured buses to evaluate model performance.
     """
-    print("\n" + "=" * 60)
-    print(" COMPARISON: ACTUAL vs PREDICTED VOLTAGE (UNMEASURED BUSES)")
-    print("=" * 60)
+    # print("\n" + "=" * 60)
+    # print(" COMPARISON: ACTUAL vs PREDICTED VOLTAGE (UNMEASURED BUSES)")
+    # print("=" * 60)
 
     # 1. TABULAR RESULTS
     results_df = pd.DataFrame({
@@ -107,9 +110,9 @@ def evaluate_and_visualize(all_buses_sorted, measured_buses, y_true, y_pred, sig
     formatted_results['Error_%'] = formatted_results['Error_%'].apply(lambda x: f"{x:.2f}%")
 
     # Print the tabular results to the console
-    print(formatted_results[
-              ['Bus_ID', 'Actual_V_pu', 'Predicted_V_pu', 'Abs_Error', 'Error_%', 'Uncertainty_Std']].to_string(
-        index=False))
+    # print(formatted_results[
+    #          ['Bus_ID', 'Actual_V_pu', 'Predicted_V_pu', 'Abs_Error', 'Error_%', 'Uncertainty_Std']].to_string(
+    #    index=False))
 
     # Create a dynamic file name based on the plot title
     file_name = f"{title.replace(' ', '_').replace('/', '_')}_Results.xlsx"

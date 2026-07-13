@@ -7,7 +7,7 @@ import pandapower as pp
 import pandapower.plotting.plotly as pplotly
 
 # Import custom modules
-from simbench_test import run_study_case, run_annual_time_series
+from simbench_test import run_study_case
 from gpr_model import prepare_topology_data, train_and_predict_gpr, evaluate_and_visualize
 
 
@@ -20,8 +20,13 @@ def main():
     print(f"Downloading network with code: '{sb_code}'...")
     net = sb.get_simbench_net(sb_code)
 
+    # Preperation for crisis scenario
+    # profiles_instead_of_study_cases = False
     print("Fetching annual profiles (Absolute values in p.u.)...")
     profiles_pu = sb.get_absolute_values(net, profiles_instead_of_study_cases=False)
+
+    print("Creating interactive grid map...")
+    pplotly.simple_plotly(net)
 
     print("\n==========================================")
     print(" 2. BASELINE POWER FLOW (NORMAL DAY)")
@@ -38,6 +43,8 @@ def main():
     # ==========================================
     all_buses = net.res_bus[['vm_pu', 'va_degree']].copy()
 
+    # Get 30% of data to simulate observed data
+    # Get always the same 30% with random_state=42
     measured_buses = all_buses.sample(frac=0.30, random_state=42)
     print(f"Total buses in the network: {len(all_buses)}")
     print(f"Number of measured buses (30% Smart Meters): {len(measured_buses)}\n")
@@ -46,9 +53,10 @@ def main():
     # 4. NORMAL DAY: GPR STATE ESTIMATION
     # ==========================================
     print("\n==========================================")
-    print(" 4. AI TEST 1: NORMAL DAY STATE ESTIMATION")
+    print(" 4. TEST 1: NORMAL DAY STATE ESTIMATION")
     print("==========================================\n")
 
+    # Calling prepare_topology_data function
     X_train, y_train, X_test, y_true, scaler_y, all_buses_sorted = prepare_topology_data(net, all_buses, measured_buses)
     y_pred, sigma = train_and_predict_gpr(X_train, y_train, X_test, scaler_y)
 
@@ -68,7 +76,7 @@ def main():
     # 6. CRISIS DAY: GPR STATE ESTIMATION
     # ==========================================
     print("\n==========================================")
-    print(" 6. AI TEST 2: CRISIS DAY STATE ESTIMATION")
+    print(" 6. TEST 2: CRISIS DAY STATE ESTIMATION")
     print("==========================================\n")
 
     all_buses_crisis = all_buses.copy()
