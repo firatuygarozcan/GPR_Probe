@@ -38,7 +38,6 @@ def main():
     # ==========================================
     all_buses = net.res_bus[['vm_pu', 'va_degree']].copy()
 
-    # Sensörlerin KONUMLARINI (index) belirliyoruz. Bu konumlar krizde de değişmeyecek!
     measured_buses = all_buses.sample(frac=0.30, random_state=42)
     print(f"Total buses in the network: {len(all_buses)}")
     print(f"Number of measured buses (30% Smart Meters): {len(measured_buses)}\n")
@@ -53,7 +52,6 @@ def main():
     X_train, y_train, X_test, y_true, scaler_y, all_buses_sorted = prepare_topology_data(net, all_buses, measured_buses)
     y_pred, sigma = train_and_predict_gpr(X_train, y_train, X_test, scaler_y)
 
-    # Normal gün grafiğini gösterir. Kodu devam ettirmek için açılan grafiği X ile kapatmalısın!
     evaluate_and_visualize(all_buses_sorted, measured_buses, y_true, y_pred, sigma,
                            title="NORMAL DAY - Topology-Aware GPR")
 
@@ -64,7 +62,6 @@ def main():
     print(" 5. PHYSICAL SIMULATION: EXTREME WINTER NIGHT (HIGH LOAD)")
     print("==========================================\n")
 
-    # Şebekeyi kriz anına (hL) sokup voltajları hesaplıyoruz
     crisis_voltages = run_study_case(net, profiles_pu, study_case_name="hL")
 
     # ==========================================
@@ -74,20 +71,17 @@ def main():
     print(" 6. AI TEST 2: CRISIS DAY STATE ESTIMATION")
     print("==========================================\n")
 
-    # Kriz voltajlarını alıp, YAPAY ZEKAYA YENİ BİR GERÇEKLİK VERİYORUZ
     all_buses_crisis = all_buses.copy()
-    all_buses_crisis['vm_pu'] = crisis_voltages  # Tüm voltajlar kriz değerleriyle güncellendi
+    all_buses_crisis['vm_pu'] = crisis_voltages
 
-    # Sensörlerimiz aynı evlerde kaldı, ama artık kriz anındaki düşük voltajları okuyorlar
+
     measured_buses_crisis = all_buses_crisis.loc[measured_buses.index]
 
-    # AYNI GPR fonksiyonlarını kullanarak modeli kriz verisiyle tekrar eğitiyoruz
     X_train_c, y_train_c, X_test_c, y_true_c, scaler_y_c, all_buses_sorted_c = prepare_topology_data(net,
                                                                                                      all_buses_crisis,
                                                                                                      measured_buses_crisis)
     y_pred_c, sigma_c = train_and_predict_gpr(X_train_c, y_train_c, X_test_c, scaler_y_c)
 
-    # Kriz gününün grafiğini çizdiriyoruz (Kırmızı alarmlı bir başlıkla)
     evaluate_and_visualize(all_buses_sorted_c, measured_buses_crisis, y_true_c, y_pred_c, sigma_c,
                            title="CRISIS SCENARIO (High Load) - Topology-Aware GPR")
 
